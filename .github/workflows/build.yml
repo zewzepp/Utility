@@ -5,12 +5,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Unzip the mod
+        run: |
+          unzip -q -o *.zip -d extracted
+          DIR=$(dirname "$(find extracted -name settings.gradle | head -n 1)")
+          echo "Project folder: $DIR"
+          echo "PROJECT_DIR=$DIR" >> "$GITHUB_ENV"
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 25 }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: '9.2.1' }
-      - run: gradle build --stacktrace
+      - name: Build
+        run: gradle build --stacktrace
+        working-directory: ${{ env.PROJECT_DIR }}
       - uses: actions/upload-artifact@v4
         with:
           name: utility-jar
-          path: build/libs/*.jar
+          path: ${{ env.PROJECT_DIR }}/build/libs/*.jar
